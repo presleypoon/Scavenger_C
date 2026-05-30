@@ -58,30 +58,34 @@ def PickUpLogic() -> None:
     if Score >= 500:
         Render()
         print("\nYou've won!!!")
-        quit()
-        # Restart()
+        Restart()
 
 
-def EnemyLogic():
+def EnemyLogic() -> None:
     global Score, Health
     if Tick % 10:
         return
+
     XDist = Enemy.x - Player.x
     YDist = Enemy.y - Player.y
+
     if abs(XDist) > abs(YDist):
         Enemy.x -= sign(XDist)
     else:
         Enemy.y -= sign(YDist)
+
     if Enemy.x != Player.x or Enemy.y != Player.y:
         return
+
     Score -= 5
     Health -= 1
+
     if (Health != 0):
         return
+
     Render()
     print("\nYou've lose :(")
-    quit()
-    # Restart()
+    Restart()
 
 
 def sign(num: int) -> int:
@@ -110,11 +114,11 @@ def Render() -> None:
     Buffer = ChangeCharAtId(Buffer, (Loot.x + 1) + 13 * (Loot.y + 1), '$')
 
     print(f"\x1b[?25l\x1b[H{Score:<4}", end="")
-    
+
     PrintColouredPx('r', Health)
     PrintColouredPx('d', 20-Health)
     print()
-    
+
     for i in range(0, len(Buffer)):
         match Buffer[i]:
             case ' ': print("  ", end="")
@@ -123,11 +127,12 @@ def Render() -> None:
             case '$': PrintColouredPx('y', 2)
             case '!': PrintColouredPx('r', 2)
             case '\n': print()
-    
+
     print("\x1b[?25h", end="")
-    
-# @param colour b for black, r for red, g for green, y for yellow, l for blue, m for magenta, c for cyan and w for white, other will be default
-def PrintColouredPx(colour: str, length:int) -> None:
+
+
+def PrintColouredPx(colour: str, length: int) -> None:
+    # @param colour b for black, r for red, g for green, y for yellow, l for blue, m for magenta, c for cyan and w for white, other will be default
     match colour:
         case 'b': print("\x1b[40m", end="")
         case 'r': print("\x1b[41m", end="")
@@ -138,14 +143,31 @@ def PrintColouredPx(colour: str, length:int) -> None:
         case 'c': print("\x1b[46m", end="")
         case 'w': print("\x1b[47m", end="")
     print(" " * length + "\x1b[49m", end="")
-    
-    
 
 
 def ChangeCharAtId(list: str, id: int, char: str) -> str:
     return list[:id] + char + list[id + 1:]
 
 
+def Restart() -> None:
+    global Player, Loot, Enemy, Screen, Score, Tick, Health, Paused
+    Player.x, Player.y = 0, 0
+    Loot.x, Loot.y = 0, 0
+    Enemy.x, Enemy.y = 5, 5
+
+    Screen = []
+
+    Score = -10
+    Tick = 0
+    Health = 20
+
+    Paused = False
+    run('cls' if os.name == 'nt' else 'clear', shell=True)
+    Render()
+    msvcrt.getch()
+
+
+msvcrt.getch()
 while True:
     input = msvcrt.kbhit()
     if input:
@@ -160,5 +182,5 @@ while True:
         EnemyLogic()
         Render()
         Tick += 1
-    print("\x1b[?25h")
+    print("\x1b[?25h", end="")
     sleep(1/FPS)
