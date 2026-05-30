@@ -9,11 +9,12 @@
 
 void Move(char *c);
 void PickUpLogic();
+int RandomInt(int max);
 void EnemyLogic();
 int sign(int num);
-int RandomInt(int max);
 void Render();
 void PrintColouredPx(char colour, int length);
+void Restart();
 
 typedef struct
 {
@@ -24,8 +25,6 @@ typedef struct
 Entity Player = {0, 0};
 Entity Loot = {0, 0};
 Entity Enemy = {5, 5};
-
-char Screen[101];
 
 int64_t Score = -10;
 const int fps = 30;
@@ -60,6 +59,9 @@ int main()
 	srand(Time);
 
 	system("cls");
+
+	Render();
+	_getch();
 	while (1)
 	{
 		char c;
@@ -85,7 +87,7 @@ int main()
 			rand();
 			Tick++;
 		}
-		printf("\033[?25h");
+		printf("\033[?25h\033[0m");
 		Sleep(1000 / fps);
 	}
 }
@@ -96,7 +98,7 @@ void Move(char *c)
 	{
 	case 'w':
 	{
-		Player.y--;
+		(Player.y)--;
 		if (Player.y < 0)
 		{
 			Player.y = 9;
@@ -135,19 +137,28 @@ void Move(char *c)
 
 void PickUpLogic()
 {
-	if (Player.x == Loot.x && Player.y == Loot.y)
+	if (Player.x != Loot.x || Player.y != Loot.y)
 	{
-		Loot.x = RandomInt(10);
-		Loot.y = RandomInt(10);
-		Score += 10;
-		if (Score >= 500)
-		{
-			Render();
-			printf("\nYou've won!!!");
-			exit(0);
-			// Restart();
-		}
+		return;
 	}
+	Loot.x = RandomInt(10);
+	Loot.y = RandomInt(10);
+	Score += 10;
+	if (Score >= 500)
+	{
+		Render();
+		printf("\nYou've won!!!");
+		Restart();
+	}
+}
+
+int RandomInt(int max)
+{
+	for (int i = 0; i < rand() % 128; i++)
+	{
+		rand();
+	}
+	return rand() % max;
 }
 
 void EnemyLogic()
@@ -161,14 +172,12 @@ void EnemyLogic()
 	if (abs(XDist) > abs(YDist))
 	{
 		Enemy.x -= sign(XDist);
-		Enemy.x = (Enemy.x + 10) % 10;
 	}
 	else
 	{
 		Enemy.y -= sign(YDist);
-		Enemy.y = (Enemy.y + 10) % 10;
 	}
-	if (!(Enemy.x == Player.x && Enemy.y == Player.y))
+	if (Enemy.x != Player.x || Enemy.y != Player.y)
 	{
 		return;
 	}
@@ -178,8 +187,7 @@ void EnemyLogic()
 	{
 		Render();
 		printf("You've lose :(");
-		exit(0);
-		// Restart();
+		Restart();
 	}
 }
 
@@ -194,15 +202,6 @@ int sign(int num)
 		return -1;
 	}
 	return 0;
-}
-
-int RandomInt(int max)
-{
-	for (int i = 0; i < rand() % 128; i++)
-	{
-		rand();
-	}
-	return rand() % max;
 }
 
 void Render()
@@ -335,4 +334,22 @@ void PrintColouredPx(char colour, int length)
 	}
 
 	printf("\033[49m");
+}
+
+void Restart()
+{
+	_getch();
+	system("cls");
+	Player = (Entity){0, 0};
+	Loot = (Entity){0, 0};
+	Enemy = (Entity){5, 5};
+
+	Score = -10;
+	Tick = 0;
+	Health = 20;
+
+	Paused = false;
+
+	Render();
+	_getch();
 }
